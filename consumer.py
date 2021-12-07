@@ -1,6 +1,7 @@
 from kafka import KafkaConsumer
 import json
 from config import config
+import sys
 
 consumer = KafkaConsumer(
     config['system_id'] + '_sub',
@@ -18,3 +19,4 @@ consumer = KafkaConsumer(
 
 for message in consumer:
     print('Message: \n{}'.format(json.dumps(message.value, indent=4, sort_keys=True)))
+    sys.stdout.flush()
