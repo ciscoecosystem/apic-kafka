@@ -3,7 +3,7 @@ import json
 from config import config
 
 consumer = KafkaConsumer(
-    'MySuperSystemID_sub',
+    config['system_id'] + '_sub',
      bootstrap_servers=[config['apic_host'] + ':9093'],
      security_protocol="SSL",
      ssl_check_hostname=False,
