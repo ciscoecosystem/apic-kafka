@@ -10,10 +10,12 @@ Python
 Python must be installed (Following documentation has been tested with Python3)
 We recommend you use a dedicated virtual environment.
 
+The following install the requirements and generate the meta file used by PyACI.
 ```
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+rmetagen.py -u admin YOUR_APIC_IP_ADDRESS
 ```
 
 To connect to the Kafka bus, you will need to allow port TCP/9093 to be opened in the APIC firewall.
