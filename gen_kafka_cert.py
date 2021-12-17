@@ -31,22 +31,41 @@ def getKafkaCerts():
         raise(Exception("Failed to get kafka certs"))
 
     readDict = {
-        "server.key": "",
-        "server.crt": "",
-        "cacert.crt": "",
+        kafka_cert.FINAL_KEY: "",
+        kafka_cert.FINAL_CRT: "",
+        kafka_cert.FINAL_CA: ""
+    }
+
+    copyDict = {
+        kafka_cert.FINAL_KEY: "",
+        kafka_cert.FINAL_CRT: "",
+        kafka_cert.FINAL_CA: "",
+        kafka_cert.FINAL_CRT_DER: "",
+        kafka_cert.FINAL_KEY_DER: "",
+        kafka_cert.FINAL_CA_DER: "",
+        kafka_cert.FINAL_P8: "",
+        kafka_cert.FINAL_P12: "",
+        kafka_cert.FINAL_CA_DER: "",
+        kafka_cert.FINAL_JKS_KEYSTORE: "",
+        kafka_cert.FINAL_JKS_TRUSTSTORE: "",
+        "server8.key": "",
+        "ApicCa.crt": "",
+        "kc.log": ""
     }
 
     dir = wdir + "/"
-    for fname in readDict:
-        shutil.copy(dir + fname, previous_dir)
-        f = open(dir + fname, "r")
-        readDict[fname] = f.read()
-        f.close()
+    for fname in copyDict:
+        if os.path.isfile(dir + fname):
+            shutil.copy(dir + fname, previous_dir)
 
-    
+    for fname in readDict:
+        if os.path.isfile(dir + fname):
+            f = open(dir + fname, "r")
+            readDict[fname] = f.read()
+            f.close()
 
     os.system('rm -rf ' + wdir)
-    return readDict["server.key"], readDict["server.crt"], readDict["cacert.crt"]
+    return readDict[kafka_cert.FINAL_KEY], readDict[kafka_cert.FINAL_CRT], readDict[kafka_cert.FINAL_CA]
 
 def main():
     print("Starting Certificate Generation...")

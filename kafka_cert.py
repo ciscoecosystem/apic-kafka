@@ -42,6 +42,10 @@ FINAL_P8 = 'server.p8'
 FINAL_P12 = 'server.p12'
 EXPORT_PASS = 'ins3965!'
 FINAL_BLOB = 'blob.txt'
+FINAL_JKS_TRUSTSTORE = 'truststore.jks'
+FINAL_JKS_KEYSTORE = 'keystore.jks'
+TRUSTSTORE_PASS = 'ins3965!'
+KEYSTORE_PASS = 'ins3965!'
 
 # Copies to support naming as per cert generation infra
 CERT_COPY = [(FINAL_P8, 'server8.key'), (FINAL_CA, 'ApicCa.crt')]
@@ -201,7 +205,7 @@ def delete_copies():
 
 
 def convert_certs():
-    '''Converts PEM certificates to PKCS8, PKCS12 and DER'''
+    '''Converts PEM certificates to PKCS8, PKCS12, JKS and DER'''
     cmd = 'openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in ' + FINAL_KEY + ' -out ' + FINAL_P8
     ret, out = run(cmd)
     if ret != 0:
@@ -223,6 +227,15 @@ def convert_certs():
     logger.info('Generated der: [%s, %s, %s] ' % (FINAL_CRT_DER, FINAL_KEY_DER, FINAL_CA_DER))
     if not pair_match(FINAL_CRT_DER, FINAL_KEY_DER, 'der'):
         return False
+
+    cmd = 'keytool -keystore ' + FINAL_JKS_TRUSTSTORE + ' -alias CARoot -import -file ' + FINAL_CA + ' -storepass ' + TRUSTSTORE_PASS + ' -noprompt'
+    cmd = cmd + ' && keytool -keystore ' + FINAL_JKS_KEYSTORE + ' -alias CARoot -import -file ' + FINAL_CA + ' -storepass ' + KEYSTORE_PASS + ' -noprompt'
+    cmd = cmd + ' && keytool -importkeystore -destkeystore ' + FINAL_JKS_KEYSTORE + ' -deststorepass ' + KEYSTORE_PASS + ' -srckeystore ' + FINAL_P12 + ' -srcstoretype PKCS12 -srcstorepass ' + EXPORT_PASS + ' -noprompt'
+    cmd = cmd + ' && keytool -changealias -alias 1 -destalias localhost -keypass ' + KEYSTORE_PASS + ' -keystore ' + FINAL_JKS_KEYSTORE + ' -storepass ' + KEYSTORE_PASS
+    ret, out = run(cmd)
+    if ret != 0:
+        return False
+    logger.info('Generated PKS: [%s, %s] ' % (FINAL_JKS_TRUSTSTORE, FINAL_JKS_KEYSTORE))
 
     # Cert convertions and cert/key match success
     return True
@@ -290,9 +303,15 @@ def parse_args():
     return args
 
 
-def generate(workdir, nodeip, cn, user, password):
+def generate(workdir, nodeip, cn, user, password, export_pass=None, keystore_pass=None, truststore_pass=None):
     previous_dir = os.getcwd()
     os.chdir(workdir)
+    if export_pass:
+        EXPORT_PASS = export_pass
+    if keystore_pass:
+        KEYSTORE_PASS = keystore_pass
+    if truststore_pass:
+        TRUSTSTORE_PASS = truststore_pass
     ret, PASSPHRASE = get_passphrase(nodeip, user, password)
     if not ret:
         print("Arguments: Could not fetch passphrase using credentials")
